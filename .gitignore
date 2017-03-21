@@ -27,3 +27,6 @@
 *.exe
 *.out
 *.app
+
+0313*
+Debug*

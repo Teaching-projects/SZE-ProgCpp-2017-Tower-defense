@@ -6,17 +6,22 @@
 #include <GL\freeglut.h>
 #include <iostream>
 #include <string>
+#include "Tower.h"
+#include "Enemy.h"
+#include "Game.h"
 
 
 #define COLUMNS 810
 #define ROWS 600
-#define TOWER_UNT 30
+#define TOWER_UNIT 30
 #define PATH_HEIGHT 60
 #define FPS 10
 
 using namespace std;
-
+Enemy e1("asd",100,10,1,20,ROWS/2+10);
+Tower t2("asd",100,20,3,300,330);
 void drawMap();
+int nulla = 0;
 
 void reshape_callback(int w, int h){	//ablak újraméretezésnél beállítja a viewportot
 	glViewport(0, 0, (GLsizei)w, (GLsizei)h);
@@ -28,15 +33,24 @@ void reshape_callback(int w, int h){	//ablak újraméretezésnél beállítja a viewpo
 
 int i = 20;
 void display_callback(){
+	i += 10;
 	glClear(GL_COLOR_BUFFER_BIT);
 	drawMap();
-	glColor3f(0.4, 1, 0);
+	if (e1.getHealth()>0 && e1.GetX()<COLUMNS-100){
+		e1.kirajzol();
+		e1.Xnovel();
+		t2.loves(&e1,i);
+		glColor3f(0.0, 0.0, 0.0);
+		e1.drawHP();
+	}
+	t2.kirajzol(TOWER_UNIT);
+	/*glColor3f(0.4, 1, 0);
 	glRectd(i,ROWS/2-20,i+40,ROWS/2+20);	//ettõl
 	i += 10;
 	if (i > 1000){
 		i = 20;
 	}						//eddig, ez "mozgatja" a piros négyzetet jobbra a pályán
-	//nyilván ez igazából úgy van megoldva, hogy kirajzol minden egyes képfrissítésnél egy négyzetet, ami az fpsnek megfelelõen megy arréb
+	//nyilván ez igazából úgy van megoldva, hogy kirajzol minden egyes képfrissítésnél egy négyzetet, ami az fpsnek megfelelõen megy arréb*/
 	glutSwapBuffers();
 }
 
@@ -54,37 +68,36 @@ void unit(int x, int y){	//kirajzol egy négyszöget x és y távolságra a bal alsó 
 	glColor3f(1.0, 0.0, 0.0);
 	glBegin(GL_LINE_LOOP);
 		glVertex2i(x,y);
-		glVertex2i(x+TOWER_UNT, y);
-		glVertex2i(x+TOWER_UNT, y+TOWER_UNT);
-		glVertex2i(x, y+TOWER_UNT);
+		glVertex2i(x+TOWER_UNIT, y);
+		glVertex2i(x+TOWER_UNIT, y+TOWER_UNIT);
+		glVertex2i(x, y+TOWER_UNIT);
 	glEnd();
 }
 
 void drawMap(){
-	for (int x = 0; x < COLUMNS; x+=TOWER_UNT)
+	for (int x = 0; x < COLUMNS; x+=TOWER_UNIT)
 	{
-		for (int y = ROWS / 2 + PATH_HEIGHT / 2; y < ROWS / 2 + PATH_HEIGHT / 2 + 2 * TOWER_UNT; y += TOWER_UNT)
+		for (int y = ROWS / 2 + PATH_HEIGHT / 2; y < ROWS / 2 + PATH_HEIGHT / 2 + 2 * TOWER_UNIT; y += TOWER_UNIT)
 		{
 			unit(x, y);
 		}
 	}
-	for (int x = 0; x < COLUMNS; x += TOWER_UNT)
+	for (int x = 0; x < COLUMNS; x += TOWER_UNIT)
 	{
-		for (int y = ROWS / 2 - PATH_HEIGHT / 2 - 2 * TOWER_UNT; y < ROWS / 2 - PATH_HEIGHT / 2; y += TOWER_UNT)
+		for (int y = ROWS / 2 - PATH_HEIGHT / 2 - 2 * TOWER_UNIT; y < ROWS / 2 - PATH_HEIGHT / 2; y += TOWER_UNIT)
 		{
 			unit(x, y);
 		}
 	}
 	glBegin(GL_POLYGON);
 	glColor3f(1.0, 1.0, 1.0);
-	glVertex3i(0, ROWS/2-PATH_HEIGHT/2, 0.0);
-	glVertex3i(COLUMNS, ROWS/2-PATH_HEIGHT/2, 0.0);
-	glVertex3i(COLUMNS, ROWS / 2 + PATH_HEIGHT / 2, 0.0);
-	glVertex3i(0, ROWS / 2 + PATH_HEIGHT / 2, 0.0);
+	glVertex3i(0, ROWS/2-PATH_HEIGHT/2, 0);
+	glVertex3i(COLUMNS, ROWS/2-PATH_HEIGHT/2, 0);
+	glVertex3i(COLUMNS, ROWS / 2 + PATH_HEIGHT / 2, 0);
+	glVertex3i(0, ROWS / 2 + PATH_HEIGHT / 2, 0);
 	glEnd();
 
 }
-
 
 int main(int argc, char* argv[]) {
 

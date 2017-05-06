@@ -26,7 +26,7 @@ public:
 	int getRateOfFire() const;
 	void kirajzol(int TOWER_UNIT) const;
 	int getX() const;
-	void loves(Enemy* e, int nulla);
+	int loves(Enemy** e, int nulla);
 
 };
 

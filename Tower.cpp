@@ -37,10 +37,11 @@ int Tower::getX() const{
 	return X;
 }
 
-void Tower::loves(Enemy* e, int nulla){
-	if (X - Range < e->GetX() && e->GetX() < X + Range){
+int Tower::loves(Enemy** e, int nulla){
+	if (X - Range < (*e)->GetX() && (*e)->GetX() < X + Range && (*e)->getHealth()>0){
 		if (nulla % RateOfFire == 0){		//nem a legjobb megoldás, mert itt az i változót adjuk át a mainbõl amit csak azért hagytunk ott hogy minden lefutásnál növeljük és itt minden 3. belépésnél (növelésnél) lõ
-			e->HpLower(getDamage());
+			(*e)->HpLower(getDamage());
 		}
+		return 1;
 	}
 }

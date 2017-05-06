@@ -34,7 +34,7 @@ void Enemy::kirajzol(){
 }
 
 void Enemy::Xnovel(){
-	X += Speed;
+	this->X += Speed;
 }
 
 int Enemy::GetX() const{
@@ -47,6 +47,7 @@ int Enemy::GetY() const{
 
 void Enemy::drawHP()
 {
+	if (Hp < 0) Hp = 0;
 	std::string str =std::to_string(Hp);
 	glRasterPos3i(X-25, Y-30, 0);
 	for (unsigned i = 0; i<str.length(); i++)

@@ -6,6 +6,7 @@
 #include <GL\freeglut.h>
 #include <iostream>
 #include <string>
+#include <vector>
 #include "Tower.h"
 #include "Enemy.h"
 #include "Game.h"
@@ -18,10 +19,30 @@
 #define FPS 10
 
 using namespace std;
+
+std::vector<Tower> towers_vector;
+std::vector<Enemy*> enemy_vector;
 Enemy e1("asd",100,10,1,20,ROWS/2+10);
-Tower t2("asd",100,20,3,300,330);
+Game g1(100,20);
+char c;						//torony lerakásnál switch feltétel hogy melyiket tegyük le
 void drawMap();
 int nulla = 0;
+int i = 1;
+bool tower_placeing = false;
+
+int tower_placing_check(int x, int y){
+	if (x < COLUMNS && x>0 && y<ROWS / 2 + PATH_HEIGHT / 2 + 2 * TOWER_UNIT && y> ROWS / 2 - PATH_HEIGHT / 2 - 2 * TOWER_UNIT)
+	{
+		if (y<ROWS / 2 + PATH_HEIGHT / 2 && y> ROWS / 2 - PATH_HEIGHT / 2)
+		{
+			return 0;
+		}
+		return 1;
+	}
+	else{
+		return 0;
+	}
+}
 
 void reshape_callback(int w, int h){	//ablak újraméretezésnél beállítja a viewportot
 	glViewport(0, 0, (GLsizei)w, (GLsizei)h);
@@ -31,26 +52,137 @@ void reshape_callback(int w, int h){	//ablak újraméretezésnél beállítja a viewpo
 	glMatrixMode(GL_MODELVIEW);
 }
 
-int i = 20;
+void mouse_control(int button, int state, int x, int y){
+	int Tower_x, Tower_y;
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
+		cout << x << " " << y << endl;
+		if (g1.getStatus()==1 && x<40 && x>2 && y<20 && y>5){		//Ha a WAVE-re kattintunk akkor elindul a hullám
+			g1.StatusChange(2);
+			g1.WaveIncrease();
+		}
+
+		else if (x < 70 && x>2 && y < 501 && y>488){				//ha a water toronyra kattintunk akkor a kövi belépésnél ha egy torony helyére kattintunk, akkor lerakja a tornyot
+			tower_placeing = true;
+			c = 'w';
+		}
+		else if (x < 60 && x>2 && y < 541 && y>528){				//ha a fire toronyra kattintunk akkor a kövi belépésnél ha egy torony helyére kattintunk, akkor lerakja a tornyot
+			tower_placeing = true;
+			c = 'f';
+		}
+		else if (x < 68 && x>2 && y < 581 && y>568){				//ha az earth toronyra kattintunk akkor a kövi belépésnél ha egy torony helyére kattintunk, akkor lerakja a tornyot
+			tower_placeing = true;
+			c = 'e';
+		}
+
+		else if (tower_placeing && tower_placing_check(x, y) == 1){
+			//cout << x << " " << y << endl;
+			Tower_x = x / TOWER_UNIT;
+			Tower_x *= TOWER_UNIT;
+			if (y == 330) y += 1;
+			if (y == 270) y -= 1;
+			Tower_y = (ROWS - y) / TOWER_UNIT;
+			Tower_y *= TOWER_UNIT;
+			switch (c){
+			case 'w':
+				if (g1.getMoney() >= 10){
+					towers_vector.push_back(Tower("water", 110, 20, 3, Tower_x, Tower_y));
+					g1.MoneyIncrease(-10);
+				}
+				else{
+					cout << "Nincs eleg penz a 'water' torony megvasarlasahoz\n";
+				}
+				break;
+
+			case 'f':
+				if (g1.getMoney() >= 20){
+					towers_vector.push_back(Tower("fire", 100, 50, 4, Tower_x, Tower_y));									//még kéknek rajzolja ki mert nincs meg a külön osztály
+					g1.MoneyIncrease(-20);
+				}
+				else{
+					cout << "Nincs eleg penz a 'fire' torony megvasarlasahoz\n";
+				}
+				break;
+
+			case 'e':
+				if (g1.getMoney() >= 15){
+					towers_vector.push_back(Tower("earth", 90, 40, 5, Tower_x, Tower_y));									// szintén
+					g1.MoneyIncrease(-15);
+				}
+				else{
+					cout << "Nincs eleg penz az 'earth' torony megvasarlasahoz\n";
+				}
+				break;
+			}
+			tower_placeing = false;
+		}
+		else{
+			tower_placeing = false;
+		}
+	}
+}
+
 void display_callback(){
-	i += 10;
+	int lovesjelzo = 1;
+	vector<Enemy*>::iterator iter;
+	i += 1;
 	glClear(GL_COLOR_BUFFER_BIT);
 	drawMap();
-	if (e1.getHealth()>0 && e1.GetX()<COLUMNS-100){
-		e1.kirajzol();
-		e1.Xnovel();
-		t2.loves(&e1,i);
-		glColor3f(0.0, 0.0, 0.0);
-		e1.drawHP();
+	g1.DrawString("WAVE: ", 2, ROWS - 20);
+	g1.DrawString(std::to_string(g1.getActualWave()), 50, ROWS - 20);
+	g1.DrawString("Life Points: ", COLUMNS / 2 - 50, ROWS - 20);
+	g1.DrawString(std::to_string(g1.getLifePoints()), COLUMNS / 2 + 20, ROWS - 20);
+	g1.DrawString("Money: ", COLUMNS - 90, ROWS - 20);
+	g1.DrawString(std::to_string(g1.getMoney()), COLUMNS - 35, ROWS - 20);
+	g1.DrawString("Water Tower: ", 2, 100);
+	g1.DrawString("Fire Tower: ", 2, 60);
+	g1.DrawString("Earth Tower: ", 2, 20);
+	for (Tower j : towers_vector){
+		j.kirajzol(TOWER_UNIT);
 	}
-	t2.kirajzol(TOWER_UNIT);
-	/*glColor3f(0.4, 1, 0);
-	glRectd(i,ROWS/2-20,i+40,ROWS/2+20);	//ettõl
-	i += 10;
-	if (i > 1000){
-		i = 20;
-	}						//eddig, ez "mozgatja" a piros négyzetet jobbra a pályán
-	//nyilván ez igazából úgy van megoldva, hogy kirajzol minden egyes képfrissítésnél egy négyzetet, ami az fpsnek megfelelõen megy arréb*/
+	switch (g1.getStatus()){
+		case 2:
+			for (vector<Enemy*>::iterator k = enemy_vector.begin(); k != enemy_vector.end();){
+				if ((*k)->getHealth() > 0 && (*k)->GetX() < COLUMNS - 20){
+					(*k)->kirajzol();
+					(*k)->Xnovel();
+					/*for (Tower j : towers_vector){
+						j.loves(&k, i);
+					}*/
+					glColor3f(0.0, 0.0, 0.0);
+					(*k)->drawHP();
+					k++;
+				}
+				else{					//ha a k-adik enemy élete nem több mint 0 vagy a elérte a végét akkor ide lépünk
+					if ((*k)->getHealth() <= 0){				//ha az élet volt a gond
+						g1.MoneyIncrease((*k)->getGold());		//növeljük a pénzünket
+						k = enemy_vector.erase(k);				//és itt ki kell majd törölni a kadik elemet a vektorból
+					}
+					else
+					{
+						k = enemy_vector.erase(k);
+						g1.LifePointsDecrase();		//egyébként az életünket kell csökkenteni mert végig ért az ellenfél
+					}
+				}
+			}
+			for (vector<Tower>::iterator it = towers_vector.begin(); it != towers_vector.end();it++){
+				iter = enemy_vector.begin();
+				lovesjelzo = 1;
+				while (iter != enemy_vector.end() && lovesjelzo == 1){
+					if (it->loves(&*iter,i) == 1)
+					{
+						lovesjelzo = 0;
+					}
+					iter++;
+				}
+			}
+			if (enemy_vector.empty()){
+				g1.StatusChange(1);
+			}
+			break;
+		case 3:
+			//játék vége valamiért
+			break;
+	}
 	glutSwapBuffers();
 }
 
@@ -100,7 +232,9 @@ void drawMap(){
 }
 
 int main(int argc, char* argv[]) {
-
+	enemy_vector.push_back(&Enemy("asd", 200, 10, 5, 40, ROWS / 2 + 10));
+	enemy_vector.push_back(&Enemy("asd", 200, 10, 5, 0, ROWS / 2 + 10));
+	enemy_vector.push_back(&Enemy("asd", 200, 10, 5, -40, ROWS / 2 + 10));
 	glutInit(&argc, argv);	// Initialize GLUT
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);	// Set up some memory buffers for our display
 	glutInitWindowSize(COLUMNS, ROWS);	// Set the window size
@@ -108,6 +242,7 @@ int main(int argc, char* argv[]) {
 	glutDisplayFunc(display_callback);
 	glutReshapeFunc(reshape_callback);
 	glutTimerFunc(0,timer_callback,0);
+	glutMouseFunc(mouse_control);
 	init();
 	glutMainLoop();
 	return 0;

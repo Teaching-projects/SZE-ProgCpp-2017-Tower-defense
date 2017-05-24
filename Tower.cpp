@@ -1,11 +1,11 @@
 #include "Tower.h"
 
 
-Tower::Tower(std::string Type, int Range, int Damage, int RateOfFire, int x, int y){
-	this->Type = Type;
-	this->Range=Range;
-	this->Damage=Damage;
-	this->RateOfFire = RateOfFire;
+Tower::Tower(std::string type, int range, int damage, int rateOfFire, int x, int y){
+	Type = type;
+	Range=range;
+	Damage=damage;
+	RateOfFire = rateOfFire;
 	X=x;
 	Y=y;
 }
@@ -25,7 +25,15 @@ int Tower::getDamage() const{
 
 void Tower::kirajzol(int TOWER_UNIT) const{
 	glBegin(GL_POLYGON);
-		glColor3f(0.0, 0.0, 1.0);
+		if (Type == "water"){
+			glColor3f(0.0, 0.0, 1.0);
+		}
+		else if (Type == "fire"){
+			glColor3f(1.0, 0.0, 0.0);
+		}
+		else{
+			glColor3f(0.0, 1.0, 0.0);
+		}
 		glVertex2i(X,Y);
 		glVertex2i(X + TOWER_UNIT, Y);
 		glVertex2i(X + TOWER_UNIT, Y + TOWER_UNIT);

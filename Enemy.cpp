@@ -34,7 +34,7 @@ void Enemy::kirajzol(){
 }
 
 void Enemy::Xnovel(){
-	this->X += Speed;
+	X += Speed;
 }
 
 int Enemy::GetX() const{

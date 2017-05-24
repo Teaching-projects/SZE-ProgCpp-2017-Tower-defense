@@ -5,6 +5,7 @@
 #include <GL\glew.h>
 #include <GL\freeglut.h>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include "Tower.h"
@@ -16,18 +17,19 @@
 #define ROWS 600
 #define TOWER_UNIT 30
 #define PATH_HEIGHT 60
-#define FPS 10
+#define FPS 40
 
 using namespace std;
 
+FILE *ptr_file;
 std::vector<Tower> towers_vector;
 std::vector<Enemy*> enemy_vector;
-Enemy e1("asd",100,10,1,20,ROWS/2+10);
 Game g1(100,20);
 char c;						//torony lerakásnál switch feltétel hogy melyiket tegyük le
 void drawMap();
 int nulla = 0;
 int i = 1;
+int beker = 0;
 bool tower_placeing = false;
 
 int tower_placing_check(int x, int y){
@@ -55,23 +57,28 @@ void reshape_callback(int w, int h){	//ablak újraméretezésnél beállítja a viewpo
 void mouse_control(int button, int state, int x, int y){
 	int Tower_x, Tower_y;
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
-		cout << x << " " << y << endl;
+		//cout << x << " " << y << endl;
 		if (g1.getStatus()==1 && x<40 && x>2 && y<20 && y>5){		//Ha a WAVE-re kattintunk akkor elindul a hullám
 			g1.StatusChange(2);
 			g1.WaveIncrease();
+			//cout << (*enemy_vector.begin())->getHealth();
+			beker = 0;
 		}
 
 		else if (x < 70 && x>2 && y < 501 && y>488){				//ha a water toronyra kattintunk akkor a kövi belépésnél ha egy torony helyére kattintunk, akkor lerakja a tornyot
 			tower_placeing = true;
 			c = 'w';
+			cout << "Kattintson egy ures negyzetre a 'water' torony elhelyezesehez\n";
 		}
 		else if (x < 60 && x>2 && y < 541 && y>528){				//ha a fire toronyra kattintunk akkor a kövi belépésnél ha egy torony helyére kattintunk, akkor lerakja a tornyot
 			tower_placeing = true;
 			c = 'f';
+			cout << "Kattintson egy ures negyzetre a 'fire' torony elhelyezesehez\n";
 		}
 		else if (x < 68 && x>2 && y < 581 && y>568){				//ha az earth toronyra kattintunk akkor a kövi belépésnél ha egy torony helyére kattintunk, akkor lerakja a tornyot
 			tower_placeing = true;
 			c = 'e';
+			cout << "Kattintson egy ures negyzetre az 'earth' torony elhelyezesehez\n";
 		}
 
 		else if (tower_placeing && tower_placing_check(x, y) == 1){
@@ -85,8 +92,9 @@ void mouse_control(int button, int state, int x, int y){
 			switch (c){
 			case 'w':
 				if (g1.getMoney() >= 10){
-					towers_vector.push_back(Tower("water", 110, 20, 3, Tower_x, Tower_y));
+					towers_vector.push_back(Tower("water", 110, 20, 10, Tower_x, Tower_y));
 					g1.MoneyIncrease(-10);
+					cout << "'water' torony letrehozva\n";
 				}
 				else{
 					cout << "Nincs eleg penz a 'water' torony megvasarlasahoz\n";
@@ -95,8 +103,9 @@ void mouse_control(int button, int state, int x, int y){
 
 			case 'f':
 				if (g1.getMoney() >= 20){
-					towers_vector.push_back(Tower("fire", 100, 50, 4, Tower_x, Tower_y));									//még kéknek rajzolja ki mert nincs meg a külön osztály
+					towers_vector.push_back(Tower("fire", 100, 50, 13, Tower_x, Tower_y));	
 					g1.MoneyIncrease(-20);
+					cout << "'fire' torony letrehozva\n";
 				}
 				else{
 					cout << "Nincs eleg penz a 'fire' torony megvasarlasahoz\n";
@@ -105,8 +114,9 @@ void mouse_control(int button, int state, int x, int y){
 
 			case 'e':
 				if (g1.getMoney() >= 15){
-					towers_vector.push_back(Tower("earth", 90, 40, 5, Tower_x, Tower_y));									// szintén
+					towers_vector.push_back(Tower("earth", 90, 40, 16, Tower_x, Tower_y));	
 					g1.MoneyIncrease(-15);
+					cout << "'earth' torony letrehozva\n";
 				}
 				else{
 					cout << "Nincs eleg penz az 'earth' torony megvasarlasahoz\n";
@@ -134,14 +144,24 @@ void display_callback(){
 	g1.DrawString("Money: ", COLUMNS - 90, ROWS - 20);
 	g1.DrawString(std::to_string(g1.getMoney()), COLUMNS - 35, ROWS - 20);
 	g1.DrawString("Water Tower: ", 2, 100);
+	g1.DrawString("Cost: 10, Damage: 20, Range: 110, ROF: 10", 80, 100);
 	g1.DrawString("Fire Tower: ", 2, 60);
+	g1.DrawString("Cost: 20, Damage: 50, Range: 100, ROF: 13", 70, 60);
 	g1.DrawString("Earth Tower: ", 2, 20);
+	g1.DrawString("Cost 15, Damage: 40, Range: 90, ROF: 16", 77, 20);
 	for (Tower j : towers_vector){
 		j.kirajzol(TOWER_UNIT);
 	}
 	switch (g1.getStatus()){
 		case 2:
-			for (vector<Enemy*>::iterator k = enemy_vector.begin(); k != enemy_vector.end();){
+			/*if (beker == 0){
+				enemy_vector.push_back(&Enemy("asd", 200, 2, 5, 40, ROWS / 2 + 10));
+				enemy_vector.push_back(&Enemy("asd", 200, 2, 5, 0, ROWS / 2 + 10));
+				enemy_vector.push_back(&Enemy("asd", 200, 2, 5, -40, ROWS / 2 + 10));
+				beker++;
+			}*/
+			for (vector<Enemy*>::iterator k = enemy_vector.begin(); k != enemy_vector.end();)
+			{
 				if ((*k)->getHealth() > 0 && (*k)->GetX() < COLUMNS - 20){
 					(*k)->kirajzol();
 					(*k)->Xnovel();
@@ -161,6 +181,10 @@ void display_callback(){
 					{
 						k = enemy_vector.erase(k);
 						g1.LifePointsDecrase();		//egyébként az életünket kell csökkenteni mert végig ért az ellenfél
+						if (g1.getLifePoints() <= 0){
+							g1.StatusChange(3);
+							break;
+						}
 					}
 				}
 			}
@@ -175,16 +199,73 @@ void display_callback(){
 					iter++;
 				}
 			}
-			if (enemy_vector.empty()){
+			if (enemy_vector.empty() && g1.getLifePoints()>0){
 				g1.StatusChange(1);
+				//cout << "Atraktuk 1esre a jelzot\n";
 			}
 			break;
 		case 3:
-			//játék vége valamiért
+			if (beker != 2)
+			{
+				if (g1.getLifePoints() <= 0){
+					beker = 2;
+					cout << "\n---GAME OVER---\n";
+				}
+				else
+				{
+					beker = 2;
+					cout << "\n---YOU WIN---\n";
+				}
+			}
 			break;
 	}
 	glutSwapBuffers();
 }
+
+int beolvas(FILE *ptr_file)
+{
+	char buf[1000]; //ebbe tesszük a beolvasott karakterláncot
+	rsize_t strmax = sizeof buf;
+	char *next_token;
+	const char s[2] = ";"; //elválasztó karakter
+	char *token; //részsztring eleje
+	std::string nev;
+	int attr[5];
+	int i = -1;
+
+	if (fgets(buf, 1000, ptr_file) != NULL) //beolvasunk egy sort ha nem null jöhet a kinyerés
+	{
+		token = strtok_s(buf,s,&next_token); //elsõ token
+
+		/* többi token */
+		while (token != NULL)
+		{
+			if (i<0)
+			{
+				nev = token; //név sztring átadása
+			}
+			else
+			{
+				attr[i] = atoi(token); //intre konvertálás
+			}
+			i++;
+			token = strtok_s(NULL, s, &next_token);
+		}
+
+	}
+	else
+	{
+		return -1; //ha vége a fájlnak
+	}
+
+	/*átadjuk a külsõ változóknak az értéket*/
+	for (int i = 0; i < 10; i++){
+		//cout << i << endl;
+		enemy_vector.push_back(new Enemy(nev, attr[0], attr[1], attr[2], attr[3]-(i*40), attr[4]));
+	}
+	return 0; //ha megtörtént az adatok kinyerése
+}
+
 
 void timer_callback(int){
 	glutPostRedisplay();
@@ -231,10 +312,27 @@ void drawMap(){
 
 }
 
+void Idlecallback(){
+	if (g1.getStatus() == 1 && beker == 0){
+		if (!ptr_file){
+			cout << "nem sikerult a fajl megnyitasa\n";
+		}
+
+		if (beolvas(ptr_file) == 0);
+		else g1.StatusChange(3);
+		//enemy_vector.push_back(new Enemy("asd", 200, 2, 5, 40, ROWS / 2 + 10));
+		//enemy_vector.push_back( new Enemy("a", 200, 2, 5, 0, ROWS / 2 + 10));
+		//enemy_vector.push_back(new Enemy("b", 200, 2, 5, -40, ROWS / 2 + 10));
+		//enemy_vector.push_back(new Enemy("c", 200, 2, 5, -80, ROWS / 2 + 10));
+		beker = 1;
+		glutPostRedisplay();
+	}
+}
+
+
 int main(int argc, char* argv[]) {
-	enemy_vector.push_back(&Enemy("asd", 200, 10, 5, 40, ROWS / 2 + 10));
-	enemy_vector.push_back(&Enemy("asd", 200, 10, 5, 0, ROWS / 2 + 10));
-	enemy_vector.push_back(&Enemy("asd", 200, 10, 5, -40, ROWS / 2 + 10));
+	fopen_s(&ptr_file,"input.txt", "r");
+	//beolvassuk a fájlt és sorról sorra kinyerjük az adatokat
 	glutInit(&argc, argv);	// Initialize GLUT
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);	// Set up some memory buffers for our display
 	glutInitWindowSize(COLUMNS, ROWS);	// Set the window size
@@ -242,9 +340,12 @@ int main(int argc, char* argv[]) {
 	glutDisplayFunc(display_callback);
 	glutReshapeFunc(reshape_callback);
 	glutTimerFunc(0,timer_callback,0);
+	glutIdleFunc(Idlecallback);
 	glutMouseFunc(mouse_control);
 	init();
 	glutMainLoop();
+	//fclose(ptr_file);
+	cout << "valami\n";
 	return 0;
 }
 /*
